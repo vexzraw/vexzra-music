@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vexzra's music</title>
+  <style>
+    :root{
+      --bg:#090b0a;
+      --bg2:#111513;
+      --panel:rgba(20,26,23,0.45);
+      --panel-strong:rgba(18,24,21,0.72);
+      --text:rgba(245,255,248,0.92);
+      --muted:rgba(220,255,235,0.42);
+      --accent:#39ff88;
+      --accent-soft:rgba(57,255,136,0.16);
+      --border:rgba(130,255,185,0.18);
+      --shadow:0 10px 40px rgba(0,0,0,0.45), 0 0 40px rgba(57,255,136,0.08);
+      --radius:26px;
+      --ui-blur:18px;
+      --title-size:clamp(18px,2vw,28px);
+      --subtitle-size:clamp(12px,1vw,14px);
+    }
+
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      width:100%;
+      height:100%;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(57,255,136,0.08), transparent 26%),
+        radial-gradient(circle at 80% 10%, rgba(57,255,136,0.05), transparent 24%),
+        radial-gradient(circle at 50% 80%, rgba(255,255,255,0.03), transparent 28%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      color:var(--text);
+      font-family:Helvetica, Arial, sans-serif;
+      overflow:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:-20%;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(57,255,136,0.06), transparent 18%),
+        radial-gradient(circle at 70% 60%, rgba(57,255,136,0.04), transparent 22%);
+      filter:blur(80px);
+      pointer-events:none;
+      animation:floatFog 16s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatFog{
+      from{transform:translate3d(-2%, -1%, 0) scale(1)}
+      to{transform:translate3d(2%, 1%, 0) scale(1.08)}
+    }
+
+    .brand{
+      position:fixed;
+      top:18px;
+      left:22px;
+      z-index:20;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      color:rgba(255,255,255,0.88);
+      user-select:none;
+      pointer-events:none;
+      letter-spacing:0.4px;
+    }
+
+    .brand-name{
+      font-size:clamp(18px,1.6vw,24px);
+      font-weight:500;
+      opacity:0.82;
+      text-transform:lowercase;
+    }
+
+    .brand svg{
+      width:30px;
+      height:30px;
+      filter:drop-shadow(0 0 10px rgba(57,255,136,0.35));
+      opacity:0.95;
+    }
+
+    .app{
+      position:relative;
+      width:min(1100px, calc(100vw - 34px));
+      height:min(860px, calc(100vh - 34px));
+      margin:17px auto;
+      padding:72px 18px 18px;
+      display:grid;
+      grid-template-rows:auto 1fr auto;
+      gap:14px;
+      z-index:2;
+    }
+
+    .glass{
+      background:linear-gradient(180deg, rgba(24,30,27,0.48), rgba(14,19,17,0.58));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      backdrop-filter:blur(var(--ui-blur)) saturate(150%);
+      -webkit-backdrop-filter:blur(var(--ui-blur)) saturate(150%);
+      box-shadow:var(--shadow);
+    }
+
+    .song-info{
+      min-height:96px;
+      padding:18px 22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .song-info::after{
+      content:"";
+      position:absolute;
+      inset:auto -10% -40% auto;
+      width:240px;
+      height:240px;
+      background:radial-gradient(circle, rgba(57,255,136,0.13), transparent 65%);
+      filter:blur(18px);
+      pointer-events:none;
+    }
+
+    .meta{
+      min-width:0;
+    }
+
+    .track-title{
+      margin:0 0 6px;
+      font-size:var(--title-size);
+      font-weight:600;
+      color:rgba(255,255,255,0.78);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      letter-spacing:0.2px;
+    }
+
+    .track-artist{
+      margin:0;
+      font-size:var(--subtitle-size);
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      letter-spacing:0.4px;
+    }
+
+    .status-pill{
+      padding:9px 14px;
+      border-radius:999px;
+      font-size:12px;
+      color:rgba(230,255,240,0.88);
+      background:rgba(57,255,136,0.08);
+      border:1px solid rgba(57,255,136,0.2);
+      box-shadow:inset 0 0 18px rgba(57,255,136,0.06);
+      white-space:nowrap;
+    }
+
+    .visual-wrap{
+      position:relative;
+      overflow:hidden;
+      min-height:320px;
+    }
+
+    #visualizer{
+      width:100%;
+      height:100%;
+      display:block;
+      border-radius:var(--radius);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(57,255,136,0.03), transparent 40%),
+        linear-gradient(180deg, rgba(255,255,255,0.015), rgba(0,0,0,0.06));
+      cursor:pointer;
+    }
+
+    .drop-overlay{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:24px;
+      border-radius:var(--radius);
+      background:rgba(6,10,8,0.22);
+      color:rgba(236,255,244,0.72);
+      border:1px dashed rgba(57,255,136,0.22);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .22s ease, background .22s ease, transform .22s ease;
+      backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
+    }
+
+    .visual-wrap.dragging .drop-overlay{
+      opacity:1;
+      background:rgba(8,14,10,0.4);
+      transform:scale(1.01);
+    }
+
+    .drop-text{
+      max-width:560px;
+      line-height:1.5;
+      font-size:15px;
+      letter-spacing:0.3px;
+    }
+
+    .controls{
+      padding:16px 18px;
+      display:grid;
+      grid-template-columns:1fr auto auto auto;
+      gap:12px;
+      align-items:center;
+    }
+
+    .left-controls{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+
+    button, input, label{
+      font-family:inherit;
+    }
+
+    .play-btn, .file-btn{
+      border:none;
+      outline:none;
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(57,255,136,0.18), rgba(57,255,136,0.1));
+      color:rgba(244,255,248,0.94);
+      border:1px solid rgba(57,255,136,0.26);
+      padding:12px 16px;
+      font-size:14px;
+      cursor:pointer;
+      transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+      box-shadow:0 0 0 rgba(0,0,0,0);
+    }
+.play-btn:hover, .file-btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 8px 24px rgba(57,255,136,0.12);
+    }
+
+    .play-btn:active, .file-btn:active{
+      transform:translateY(0);
+    }
+
+    .time{
+      min-width:88px;
+      text-align:center;
+      color:rgba(230,255,240,0.66);
+      font-size:13px;
+      letter-spacing:0.4px;
+    }
+
+    .slider-wrap{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 12px;
+      border-radius:16px;
+      background:rgba(255,255,255,0.03);
+      border:1px solid rgba(255,255,255,0.05);
+      min-width:180px;
+    }
+
+    .slider-wrap span{
+      font-size:12px;
+      color:rgba(230,255,240,0.58);
+      white-space:nowrap;
+    }
+
+    input[type="range"]{
+      width:150px;
+      accent-color:var(--accent);
+      cursor:pointer;
+      background:transparent;
+    }
+
+    input[type="color"]{
+      width:42px;
+      height:42px;
+      padding:0;
+      border:none;
+      outline:none;
+      background:transparent;
+      cursor:pointer;
+      border-radius:12px;
+    }
+
+    .upload-hidden{
+      display:none;
+    }
+
+    .seek-wrap{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+      flex:1;
+    }
+
+    .seek{
+      width:100%;
+    }
+
+    .hint{
+      position:absolute;
+      right:20px;
+      bottom:90px;
+      z-index:8;
+      font-size:12px;
+      color:rgba(230,255,240,0.38);
+      background:rgba(7,10,9,0.26);
+      border:1px solid rgba(255,255,255,0.05);
+      padding:8px 10px;
+      border-radius:12px;
+      backdrop-filter:blur(10px);
+      -webkit-backdrop-filter:blur(10px);
+      pointer-events:none;
+    }
+
+    @media (max-width: 880px){
+      .controls{
+        grid-template-columns:1fr;
+      }
+      .left-controls{
+        flex-wrap:wrap;
+      }
+      .slider-wrap{
+        min-width:unset;
+      }
+      .time{
+        min-width:70px;
+      }
+      .hint{
+        display:none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="brand">
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+      <g fill="none" stroke="none">
+        <path fill="#39ff88" d="M18 56c-3 0-6-2-6-6V24c0-9 5-13 10-17l5-4 5 8c1 2 4 2 5 0l5-8 5 4c5 4 10 8 10 17v26c0 4-3 6-6 6H18z"/>
+        <path fill="#0b0f0d" d="M22 18l-5-9 9 4zm20-5 9-4-5 9z"/>
+        <path fill="#07110b" d="M23 31c4-5 9-7 9-7s-1 7-5 9c-3 2-6 1-8-2 1 0 2 0 4 0zm18 0c-4-5-9-7-9-7s1 7 5 9c3 2 6 1 8-2-1 0-2 0-4 0z"/>
+        <path fill="#b8ffd7" opacity=".28" d="M18 56c10-8 18-12 28-14-8 5-13 9-18 14z"/>
+      </g>
+    </svg>
+    <div class="brand-name">vexzra's music</div>
+  </div>
+
+  <main class="app">
+    <section class="song-info glass">
+      <div class="meta">
+        <h1 class="track-title" id="trackTitle">Arrastrá un archivo de audio</h1>
+        <p class="track-artist" id="trackArtist">FLAC, MP3 o M4A — visualizador dreamy reactivo</p>
+      </div>
+      <div class="status-pill" id="statusPill">esperando audio</div>
+    </section>
+
+    <section class="visual-wrap glass" id="dropZone">
+      <canvas id="visualizer"></canvas>
+      <div class="drop-overlay">
+        <div class="drop-text">
+          Soltá tu archivo acá o usá “Cargar audio”.<br>
+          El visualizador genera una firma visual única por archivo y se calma cuando la música se detiene.
+        </div>
+      </div>
+      <div class="hint">click en el visualizador para play / pause</div>
+    </section>
+
+    <section class="controls glass">
+      <div class="left-controls">
+        <button class="play-btn" id="playBtn">Reproducir</button>
+        <label class="file-btn" for="fileInput">Cargar audio</label>
+        <input class="upload-hidden" id="fileInput" type="file" accept=".mp3,.flac,.m4a,audio/mp3,audio/flac,audio/x-flac,audio/mp4,audio/x-m4a,audio/mpeg" />
+        <div class="time" id="timeLabel">0:00 / 0:00</div>
+      </div>
+
+      <div class="seek-wrap">
+        <span style="font-size:12px;color:rgba(230,255,240,0.58)">Progreso</span>
+        <input class="seek" id="seekBar" type="range" min="0" max="1000" value="0" />
+      </div>
+
+      <div class="slider-wrap">
+        <span>Volumen</span>
+        <input id="volumeSlider" type="range" min="0" max="100" value="85" />
+      </div>
+
+      <div class="slider-wrap">
+        <span>Color</span>
+        <input id="colorPicker" type="color" value="#39ff88" />
+      </div>
+    </section>
+  </main>
+
+  <audio id="audio" crossorigin="anonymous"></audio>
+
+  <script>
+    const audio = document.getElementById('audio');
+    const canvas = document.getElementById('visualizer');
+    const ctx = canvas.getContext('2d', { alpha: true });
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const playBtn = document.getElementById('playBtn');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const colorPicker = document.getElementById('colorPicker');
+    const titleEl = document.getElementById('trackTitle');
+    const artistEl = document.getElementById('trackArtist');
+    const statusPill = document.getElementById('statusPill');
+    const seekBar = document.getElementById('seekBar');
+    const timeLabel = document.getElementById('timeLabel');
+let audioCtx;
+    let analyser;
+    let sourceNode;
+    let dataArray;
+    let freqArray;
+    let rafId;
+    let currentObjectUrl = null;
+    let visualSeed = 1;
+    let energySmooth = 0;
+    let bassSmooth = 0;
+    let midSmooth = 0;
+    let trebleSmooth = 0;
+    let visualState = null;
+    let lastFrameTime = performance.now();
+    let idleMotion = 0;
+    let isSeeking = false;
+
+    function resizeCanvas() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (visualState) initVisualSignature(visualSeed);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0.84;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        freqArray = new Uint8Array(analyser.frequencyBinCount);
+
+        sourceNode = audioCtx.createMediaElementSource(audio);
+        sourceNode.connect(analyser);
+        analyser.connect(audioCtx.destination);
+      }
+    }
+
+    function hashFile(file) {
+      const str = `${file.name}|${file.size}|${file.type}|${file.lastModified}`;
+      let h = 2166136261;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return Math.abs(h >>> 0) + 1;
+    }
+
+    function mulberry32(seed) {
+      return function() {
+        let t = seed += 0x6D2B79F5;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    function hexToRgb(hex) {
+      const clean = hex.replace('#', '');
+      const full = clean.length === 3
+        ? clean.split('').map(c => c + c).join('')
+        : clean;
+      const num = parseInt(full, 16);
+      return {
+        r: (num >> 16) & 255,
+        g: (num >> 8) & 255,
+        b: num & 255
+      };
+    }
+
+    function rgba(hex, alpha = 1) {
+      const { r, g, b } = hexToRgb(hex);
+      return `rgba(${r},${g},${b},${alpha})`;
+    }
+
+    function parseMetadata(file) {
+      const base = file.name.replace(/.[^/.]+$/, '');
+      let artist = 'Artista desconocido';
+      let title = base;
+
+      if (base.includes(' - ')) {
+        const parts = base.split(' - ');
+        if (parts.length >= 2) {
+          artist = parts[0].trim() || artist;
+          title = parts.slice(1).join(' - ').trim() || title;
+        }
+      }
+
+      titleEl.textContent = title;
+      artistEl.textContent = artist;
+    }
+
+    function initVisualSignature(seed) {
+      const rand = mulberry32(seed);
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      const particleCount = Math.floor(120 + rand() * 120);
+      const orbitCount = Math.floor(5 + rand() * 6);
+      const ribbonCount = Math.floor(3 + rand() * 4);
+
+      const particles = Array.from({ length: particleCount }, () => ({
+        x: rand() * w,
+        y: rand() * h,
+        baseR: 0.6 + rand() * 3.2,
+        drift: 0.15 + rand() * 1.2,
+        angle: rand() * Math.PI * 2,
+        orbit: 10 + rand() * 100,
+        speed: 0.0006 + rand() * 0.0022,
+        alpha: 0.12 + rand() * 0.5,
+        hueShift: rand() * 0.18,
+        offset: rand() * 1000
+      }));
+
+      const orbits = Array.from({ length: orbitCount }, (_, i) => ({
+        radius: 40 + i * (18 + rand() * 30),
+        thickness: 0.8 + rand() * 2.8,
+        wobble: 8 + rand() * 34,
+        speed: 0.0003 + rand() * 0.0014,
+        phase: rand() * Math.PI * 2,
+        arcs: 2 + Math.floor(rand() * 4)
+      }));
+
+      const ribbons = Array.from({ length: ribbonCount }, () => ({
+        amp: 20 + rand() * 90,
+        freq: 0.6 + rand() * 2.2,
+        speed: 0.0005 + rand() * 0.0018,
+        thickness: 1 + rand() * 3,
+        phase: rand() * Math.PI * 2,
+        y: rand() * h
+      }));
+
+      visualState = { rand, particles, orbits, ribbons, seed };
+    }
+
+    function bandAverage(arr, from, to) {
+      let sum = 0;
+      let count = 0;
+      for (let i = from; i < to; i++) {
+        sum += arr[i];
+        count++;
+      }
+      return count ? sum / count / 255 : 0;
+    }
+
+    function formatTime(sec) {
+      if (!Number.isFinite(sec)) return '0:00';
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateTimeUI() {
+      const current = audio.currentTime || 0;
+      const duration = audio.duration || 0;
+      timeLabel.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
+      if (!isSeeking && Number.isFinite(duration) && duration > 0) {
+        seekBar.value = Math.floor((current / duration) * 1000);
+      }
+    }
+
+    function setStatus(text) {
+      statusPill.textContent = text;
+    }
+
+    async function loadFile(file) {
+      if (!file) return;
+      ensureAudioContext();
+
+      if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+      currentObjectUrl = URL.createObjectURL(file);
+      audio.src = currentObjectUrl;
+      audio.load();
+      audio.volume = volumeSlider.value / 100;
+
+      visualSeed = hashFile(file);
+      initVisualSignature(visualSeed);
+      parseMetadata(file);
+
+      setStatus('audio cargado');
+      playBtn.textContent = 'Reproducir';
+      seekBar.value = 0;
+      updateTimeUI();
+    }
+
+    async function togglePlayback() {
+      if (!audio.src) return;
+
+      ensureAudioContext();
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
+
+      if (audio.paused) {
+        await audio.play();
+      } else {
+        audio.pause();
+      }
+    }
+function drawBackground(w, h, accent, playing, energy) {
+      ctx.clearRect(0, 0, w, h);
+
+      const fade = playing ? 0.1 : 0.045;
+      ctx.fillStyle = `rgba(5,8,7,${fade})`;
+      ctx.fillRect(0, 0, w, h);
+
+      const glow = ctx.createRadialGradient(w * 0.5, h * 0.48, 0, w * 0.5, h * 0.48, Math.max(w, h) * 0.45);
+      glow.addColorStop(0, rgba(accent, 0.11 + energy * 0.16));
+      glow.addColorStop(0.35, rgba(accent, 0.03 + energy * 0.08));
+      glow.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    function drawVisualizer(now) {
+      rafId = requestAnimationFrame(drawVisualizer);
+
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      if (!width || !height) return;
+      if (!visualState) initVisualSignature(visualSeed);
+
+      const dt = Math.min(40, now - lastFrameTime);
+      lastFrameTime = now;
+
+      let bass = 0, mids = 0, treble = 0, energy = 0;
+      const playing = !audio.paused && !audio.ended && audio.currentTime > 0;
+
+      if (analyser) {
+        analyser.getByteFrequencyData(dataArray);
+        analyser.getByteTimeDomainData(freqArray);
+        const len = dataArray.length;
+        bass = bandAverage(dataArray, 1, Math.floor(len * 0.06));
+        mids = bandAverage(dataArray, Math.floor(len * 0.06), Math.floor(len * 0.28));
+        treble = bandAverage(dataArray, Math.floor(len * 0.28), Math.floor(len * 0.75));
+        energy = Math.min(1, bass * 0.9 + mids * 0.7 + treble * 0.55);
+      }
+
+      const response = playing ? 0.12 : 0.035;
+      bassSmooth += (bass - bassSmooth) * response;
+      midSmooth += (mids - midSmooth) * response;
+      trebleSmooth += (treble - trebleSmooth) * response;
+      energySmooth += (energy - energySmooth) * response;
+      idleMotion += playing ? dt * 0.001 : dt * 0.00018;
+
+      const accent = colorPicker.value;
+      drawBackground(width, height, accent, playing, energySmooth);
+
+      const { particles, orbits, ribbons } = visualState;
+      const cx = width * 0.5;
+      const cy = height * 0.5;
+
+      ctx.save();
+      ctx.filter = 'blur(12px)';
+      for (const ribbon of ribbons) {
+        ctx.beginPath();
+        for (let x = -20; x <= width + 20; x += 12) {
+          const t = x / width;
+          const wave = Math.sin(t * Math.PI * 2 * ribbon.freq + now * ribbon.speed + ribbon.phase);
+          const wave2 = Math.cos(t * Math.PI * 5 * (0.4 + bassSmooth) - now * ribbon.speed * 1.8);
+          const y = ribbon.y + wave * ribbon.amp * (0.35 + midSmooth * 1.7) + wave2 * 18 * (0.2 + trebleSmooth);
+          if (x === -20) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+ctx.strokeStyle = rgba(accent, 0.045 + energySmooth * 0.08);
+        ctx.lineWidth = ribbon.thickness + energySmooth * 5;
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.globalCompositeOperation = 'lighter';
+
+      for (const orbit of orbits) {
+        for (let a = 0; a < orbit.arcs; a++) {
+          const phase = orbit.phase + a * ((Math.PI * 2) / orbit.arcs);
+          const r = orbit.radius + Math.sin(now * orbit.speed + phase) * orbit.wobble * (0.4 + bassSmooth * 1.9);
+          const start = phase + now * orbit.speed * 0.35;
+          const end = start + Math.PI * (0.45 + midSmooth * 0.6);
+
+          ctx.beginPath();
+          ctx.arc(
+            Math.cos(phase * 0.7 + now * 0.0004) * orbit.wobble * 0.6,
+            Math.sin(phase * 1.1 + now * 0.0005) * orbit.wobble * 0.6,
+            Math.max(12, r),
+            start,
+            end
+          );
+          ctx.strokeStyle = rgba(accent, 0.08 + trebleSmooth * 0.14);
+          ctx.lineWidth = orbit.thickness + energySmooth * 3.2;
+          ctx.shadowBlur = 18 + energySmooth * 28;
+          ctx.shadowColor = rgba(accent, 0.22);
+          ctx.stroke();
+        }
+      }
+
+      const ringLayers = 4;
+      for (let j = 0; j < ringLayers; j++) {
+        ctx.beginPath();
+        const points = 120;
+        for (let i = 0; i <= points; i++) {
+          const angle = (i / points) * Math.PI * 2;
+          const idx = Math.floor((i / points) * (dataArray?.length || 1));
+          const spectral = (dataArray && dataArray[idx] ? dataArray[idx] / 255 : 0) * (playing ? 1 : 0.06);
+          const pulse = (bassSmooth * 44) + (midSmooth * 28) + (trebleSmooth * 16);
+          const base = 62 + j * 28;
+          const noise = Math.sin(angle * (3 + j * 1.7) + idleMotion * (1.5 + j * 0.3)) * (8 + j * 4);
+const r = base + pulse + spectral * (30 + j * 16) + noise;
+          const x = Math.cos(angle) * r;
+          const y = Math.sin(angle) * r * (0.86 + j * 0.04);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = rgba(accent, 0.09 + j * 0.035 + energySmooth * 0.08);
+        ctx.lineWidth = 1.3 + j * 0.9 + energySmooth * 1.4;
+        ctx.shadowBlur = 10 + j * 8 + energySmooth * 18;
+        ctx.shadowColor = rgba(accent, 0.18);
+        ctx.stroke();
+      }
+
+ctx.restore();
+
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      for (const p of particles) {
+        const flow = playing ? (0.3 + energySmooth * 5.5) : 0.08;
+        p.angle += p.speed * dt * (0.6 + flow);
+        const ox = Math.cos(p.angle + p.offset) * p.orbit * (0.12 + bassSmooth * 0.9);
+        const oy = Math.sin(p.angle * 1.3 + p.offset) * p.orbit * (0.12 + midSmooth * 0.95);
+
+        p.x += Math.cos(p.angle) * p.drift * flow;
+        p.y += Math.sin(p.angle * 0.9) * p.drift * flow;
+
+        if (p.x < -30) p.x = width + 30;
+        if (p.x > width + 30) p.x = -30;
+        if (p.y < -30) p.y = height + 30;
+        if (p.y > height + 30) p.y = -30;
+
+        const radius = p.baseR + energySmooth * (2.4 + p.baseR * 0.9);
+        const alpha = Math.min(0.9, p.alpha + energySmooth * 0.28);
+        const grad = ctx.createRadialGradient(p.x + ox, p.y + oy, 0, p.x + ox, p.y + oy, radius * 7);
+        grad.addColorStop(0, rgba(accent, alpha));
+        grad.addColorStop(0.4, rgba(accent, alpha * 0.26));
+        grad.addColorStop(1, rgba(accent, 0));
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(p.x + ox, p.y + oy, radius * 4.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      if (!playing && energySmooth < 0.03) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(220,255,235,0.06)';
+        ctx.font = '500 14px Helvetica, Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('El visualizador se queda en reposo cuando no suena la música', width / 2, height - 26);
+        ctx.restore();
+      }
+    }
+
+    function handleFiles(files) {
+      const file = [...files][0];
+      if (!file) return;
+      const ok = /.(mp3|flac|m4a)$/i.test(file.name) || file.type.startsWith('audio/');
+      if (!ok) {
+        setStatus('formato no válido');
+        return;
+      }
+      loadFile(file);
+    }
+
+    ['dragenter', 'dragover'].forEach(evt => {
+      window.addEventListener(evt, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('dragging');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(evt => {
+      window.addEventListener(evt, e => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (evt === 'drop') dropZone.classList.remove('dragging');
+      });
+    });
+
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('dragging');
+    });
+
+    dropZone.addEventListener('dragleave', e => {
+      if (!dropZone.contains(e.relatedTarget)) {
+        dropZone.classList.remove('dragging');
+      }
+    });
+dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragging');
+      handleFiles(e.dataTransfer.files);
+    });
+
+    fileInput.addEventListener('change', e => handleFiles(e.target.files));
+    playBtn.addEventListener('click', togglePlayback);
+    canvas.addEventListener('click', togglePlayback);
+
+    volumeSlider.addEventListener('input', () => {
+      audio.volume = volumeSlider.value / 100;
+    });
+
+    colorPicker.addEventListener('input', () => {
+      document.documentElement.style.setProperty('--accent', colorPicker.value);
+      document.documentElement.style.setProperty('--accent-soft', rgba(colorPicker.value, 0.16));
+    });
+
+    seekBar.addEventListener('input', () => {
+      isSeeking = true;
+      if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        const t = (seekBar.value / 1000) * audio.duration;
+        timeLabel.textContent = `${formatTime(t)} / ${formatTime(audio.duration)}`;
+      }
+    });
+
+    seekBar.addEventListener('change', () => {
+      if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        audio.currentTime = (seekBar.value / 1000) * audio.duration;
+      }
+      isSeeking = false;
+    });
+
+    audio.addEventListener('play', () => {
+      playBtn.textContent = 'Pausar';
+      setStatus('reproduciendo');
+    });
+
+    audio.addEventListener('pause', () => {
+      playBtn.textContent = 'Reproducir';
+      setStatus(audio.currentTime > 0 && !audio.ended ? 'en pausa' : 'audio cargado');
+    });
+
+    audio.addEventListener('ended', () => {
+      playBtn.textContent = 'Reproducir';
+      setStatus('finalizado');
+    });
+
+    audio.addEventListener('timeupdate', updateTimeUI);
+    audio.addEventListener('loadedmetadata', updateTimeUI);
+
+    resizeCanvas();
+    initVisualSignature(visualSeed);
+    drawVisualizer(performance.now());
+  </script>
+</body>
+</html>
+    
